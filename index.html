@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Essential Movies & Series</title>
+<style>
+:root {
+  --bg: #0b0d12;
+  --panel: #11151d;
+  --panel2: #171c26;
+  --text: #f3f5f7;
+  --muted: #9ca6b5;
+  --accent: #e5b84b;
+  --border: rgba(255,255,255,.08);
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  background:
+    radial-gradient(circle at 20% -10%, rgba(229,184,75,.13), transparent 32rem),
+    radial-gradient(circle at 100% 10%, rgba(96,125,255,.10), transparent 30rem),
+    var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+.container { width: min(1180px, calc(100% - 32px)); margin: auto; }
+.hero { padding: 64px 0 30px; }
+.eyebrow {
+  color: var(--accent); text-transform: uppercase; letter-spacing: .18em;
+  font-size: .76rem; font-weight: 700;
+}
+h1 { margin: 10px 0 8px; font-size: clamp(2.2rem, 6vw, 4.5rem); line-height: .98; letter-spacing: -.04em; }
+.subtitle { color: var(--muted); max-width: 650px; font-size: 1.05rem; line-height: 1.7; }
+.stats { display:flex; gap:10px; flex-wrap:wrap; margin-top:22px; }
+.stat { background:rgba(255,255,255,.045); border:1px solid var(--border); padding:9px 13px; border-radius:999px; color:#d7dce4; }
+.stat b { color:var(--text); }
+.toolbar {
+  position: sticky; top: 12px; z-index: 5; margin: 12px 0 28px;
+  padding: 12px; background: rgba(17,21,29,.82); backdrop-filter: blur(18px);
+  border:1px solid var(--border); border-radius:18px; display:flex; gap:10px; flex-wrap:wrap;
+}
+input, select, button {
+  border:1px solid var(--border); background:var(--panel2); color:var(--text);
+  border-radius:12px; padding:11px 13px; font:inherit; outline:none;
+}
+input { flex:1; min-width:220px; }
+button { cursor:pointer; }
+button.active, button:hover { border-color:rgba(229,184,75,.5); color:var(--accent); }
+.section-title { display:flex; align-items:end; justify-content:space-between; gap:16px; margin: 30px 0 14px; }
+.section-title h2 { margin:0; font-size:1.5rem; }
+.section-title span { color:var(--muted); font-size:.9rem; }
+.grid {
+  display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:16px;
+}
+.card {
+  border:1px solid var(--border); border-radius:14px;
+  background:linear-gradient(145deg, rgba(255,255,255,.055), rgba(255,255,255,.018));
+  transition:transform .18s ease, border-color .18s ease, background .18s ease;
+  overflow: hidden;
+  display:flex; flex-direction:column;
+}
+.card:hover { transform:translateY(-4px); border-color:rgba(229,184,75,.4); background:var(--panel2); }
+.poster-wrap {
+  position: relative;
+  aspect-ratio: 2/3;
+  background: var(--panel2);
+  overflow: hidden;
+}
+.poster-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  opacity: 0;
+  transition: opacity .35s ease;
+}
+.poster-wrap img.loaded { opacity: 1; }
+.poster-wrap .placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  font-size: 0.75rem;
+  background: linear-gradient(135deg, #1a1f2a, #12151c);
+}
+.poster-wrap .placeholder.hidden { display: none; }
+.card-body {
+  padding: 12px 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+.number { color:var(--accent); font-size:.7rem; font-weight:700; letter-spacing:.08em; }
+.title { font-size: .92rem; font-weight: 650; line-height: 1.3; }
+.badge { color:var(--muted); font-size:.68rem; margin-top: auto; padding-top: 6px; }
+.empty { padding:35px; text-align:center; color:var(--muted); border:1px dashed var(--border); border-radius:16px; }
+footer { color:#697383; text-align:center; padding:50px 0 35px; font-size:.85rem; }
+@media(max-width:600px) {
+  .hero { padding-top:42px; }
+  .container { width:min(100% - 20px,1180px); }
+  .grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+  .title { font-size:.85rem; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+<header class="hero">
+  <div class="eyebrow">Personal Cinema Collection</div>
+  <h1>My Essential<br>Movies & Series</h1>
+  <div class="subtitle">A curated personal watchlist — presented as a clean, searchable cinema archive with posters.</div>
+  <div class="stats">
+    <div class="stat"><b>169</b> Movies</div>
+    <div class="stat"><b>15</b> Series</div>
+    <div class="stat"><b>184</b> Total</div>
+  </div>
+</header>
+
+<div class="toolbar">
+  <input id="search" type="search" placeholder="Search titles..." aria-label="Search titles">
+  <select id="type">
+    <option value="all">All titles</option>
+    <option value="movie">Movies</option>
+    <option value="series">Series</option>
+  </select>
+  <button id="clear">Clear</button>
+</div>
+
+<section id="moviesSection">
+  <div class="section-title"><h2>Movies</h2><span id="movieCount"></span></div>
+  <div class="grid" id="movies"></div>
+</section>
+
+<section id="seriesSection">
+  <div class="section-title"><h2>TV Series</h2><span id="seriesCount"></span></div>
+  <div class="grid" id="series"></div>
+</section>
+
+<footer>My Essential Collection · 169 films · 15 series · Posters via TMDB</footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/movie-art@3.0.2/index.min.js"></script>
+<script>
+const movies = ["12 Angry Men", "21 Grams", "127 Hours", "3:10 to Yuma", "A Clockwork Orange", "A Few Good Men", "2001: A Space Odyssey", "Amélie", "American History X", "American Psycho", "American Sniper", "Amores Perros", "Babel", "Back to the Future", "Birdman", "Black Swan", "Braveheart", "Burn After Reading", "Chinatown", "Cinema Paradiso", "Collateral", "Dial M for Murder", "Dirty Harry", "Django Unchained", "Dog Day Afternoon", "Donnie Darko", "Downfall", "Dr. Strangelove", "Drive", "Edward Scissorhands", "Escape Plan", "Extraction", "Eyes Wide Shut", "Fight Club", "Ford v Ferrari", "Forrest Gump", "Full Metal Jacket", "Fury", "Gangs of New York", "Gladiator", "Good Will Hunting", "Goodfellas", "Gran Torino", "Green Book", "Heat", "Inglourious Basterds", "Interstellar", "Jackie Brown", "Knives Out", "L.A. Confidential", "La Haine", "La La Land", "Les Misérables", "Limitless", "Lincoln", "Locke", "Magnolia", "Memories of Murder", "Million Dollar Baby", "Mr. Nobody", "My Left Foot", "Mystic River", "Nightcrawler", "No Country for Old Men", "North by Northwest", "Ocean’s Eleven", "Ocean’s Twelve", "Ocean’s Thirteen", "Oldboy", "One Flew Over the Cuckoo’s Nest", "Parasite", "Prisoners", "Psycho", "Pulp Fiction", "Rain Man", "Requiem for a Dream", "Reservoir Dogs", "Romeo Akbar Walter", "Rope", "Rush", "Saving Private Ryan", "Scarface", "Scent of a Woman", "Schindler’s List", "Se7en", "Sicario", "Sicario: Day of the Soldado", "Snatch", "Some Like It Hot", "Taxi Driver", "The Apartment", "The Assassination of Jesse James by the Coward Robert Ford", "The Aviator", "The Big Lebowski", "The Birds", "The Dark Knight", "The Dark Knight Rises", "The Deer Hunter", "The Departed", "The Devil’s Advocate", "The Flowers of War", "The Fountain", "The Gentlemen", "The Girl with the Dragon Tattoo", "The Grand Budapest Hotel", "The Great Gatsby", "The Green Mile", "The Hateful Eight", "The Hunt", "The Imitation Game", "The Intouchables", "The Invisible Guest", "The Irishman", "The Last Samurai", "The Lighthouse", "The Machinist", "The Martian", "The Master", "The Notebook", "The Pianist", "The Platform", "The Prestige", "The Pursuit of Happyness", "The Revenant", "The Seventh Seal", "The Shawshank Redemption", "The Shining", "The Silence of the Lambs", "The Terminal", "The Tree of Life", "The Truman Show", "The Untouchables", "The Usual Suspects", "There Will Be Blood", "Troy", "Twelve Monkeys", "Uncut Gems", "Unhinged", "V for Vendetta", "Vertigo", "Vikram Vedha", "Whiplash", "World War Z", "A Fistful of Dollars", "For a Few Dollars More", "The Good, the Bad and the Ugly", "The Ballad of Buster Scruggs", "The Godfather", "The Godfather Part II", "The Godfather Part III", "Edge of Tomorrow", "Casino", "De Dana Dan", "Death Proof", "In the Name of the Father", "In Time", "Incendies", "Her", "Malèna", "Memento", "Ambulance", "Nocturnal Animals", "Source Code", "The Covenant", "The Fast and the Furious: Tokyo Drift", "Oppenheimer", "Rear Window", "Strangers on a Train", "Project Hail Mary"];
+const series = ["After Life", "Breaking Bad", "Chernobyl", "Dekalog", "Friends", "Hannibal", "Narcos", "Peaky Blinders", "The Punisher", "The Witcher", "True Detective (Season 1)", "Westworld (Season 1 and 2)", "The Sopranos", "Silo", "Black Mirror"];
+
+const movieGrid = document.getElementById('movies');
+const seriesGrid = document.getElementById('series');
+const movieCount = document.getElementById('movieCount');
+const seriesCount = document.getElementById('seriesCount');
+const search = document.getElementById('search');
+const type = document.getElementById('type');
+const clear = document.getElementById('clear');
+
+const posterCache = new Map();
+const pending = new Set();
+
+function escapeHtml(s) {
+  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function createCard(title, index, kind) {
+  const div = document.createElement('article');
+  div.className = 'card';
+  div.dataset.title = title.toLowerCase();
+  div.dataset.kind = kind;
+  div.dataset.index = index;
+
+  div.innerHTML = `
+    <div class="poster-wrap">
+      <div class="placeholder">Loading…</div>
+      <img alt="${escapeHtml(title)} poster" loading="lazy" decoding="async">
+    </div>
+    <div class="card-body">
+      <div class="number">${String(index + 1).padStart(3, '0')}</div>
+      <div class="title">${escapeHtml(title)}</div>
+      <div class="badge">${kind === 'movie' ? 'FILM' : 'SERIES'}</div>
+    </div>
+  `;
+  return div;
+}
+
+// Special cases for accurate poster matching (title → {query, year, type})
+const specialCases = {
+  "Birdman": { query: "Birdman", year: "2014" },
+  "The Hunt": { query: "The Hunt", year: "2012" },
+  "The Master": { query: "The Master", year: "2012" },
+  "Casino": { query: "Casino", year: "1995" },
+  "De Dana Dan": { query: "De Dana Dan", year: "2009" },
+  "Her": { query: "Her", year: "2013" },
+  "The Covenant": { query: "The Covenant", year: "2023" },
+  "After Life": { query: "After Life", year: "2019", type: "tv" },
+  "The Birds": { query: "The Birds", year: "1963" }
+};
+
+function loadPoster(card) {
+  const title = card.querySelector('.title').textContent;
+  const kind = card.dataset.kind;
+  const img = card.querySelector('img');
+  const placeholder = card.querySelector('.placeholder');
+
+  if (posterCache.has(title)) {
+    const url = posterCache.get(title);
+    if (url) {
+      img.src = url;
+      img.onload = () => { img.classList.add('loaded'); placeholder.classList.add('hidden'); };
+    } else {
+      placeholder.textContent = 'No poster';
+    }
+    return;
+  }
+
+  if (pending.has(title)) return;
+  pending.add(title);
+
+  const special = specialCases[title];
+  const opts = {
+    type: special?.type || (kind === 'movie' ? 'movie' : 'tv'),
+    size: 'w342'
+  };
+  if (special?.year) opts.year = special.year;
+
+  // Clean title a bit for better matching
+  let query = special?.query || title
+    .replace(/\s*\(Season.*?\)/i, '')
+    .replace(/\s*\(Season \d+ and \d+\)/i, '')
+    .trim();
+
+  movieArt(query, opts)
+    .then(url => {
+      posterCache.set(title, url || null);
+      pending.delete(title);
+      if (url && img.isConnected) {
+        img.src = url;
+        img.onload = () => {
+          img.classList.add('loaded');
+          placeholder.classList.add('hidden');
+        };
+        img.onerror = () => {
+          placeholder.textContent = 'No poster';
+        };
+      } else {
+        placeholder.textContent = 'No poster';
+      }
+    })
+    .catch(() => {
+      posterCache.set(title, null);
+      pending.delete(title);
+      if (placeholder) placeholder.textContent = 'No poster';
+    });
+}
+
+// Lazy load with IntersectionObserver
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      loadPoster(entry.target);
+      observer.unobserve(entry.target);
+    }
+  });
+}, { rootMargin: '200px' });
+
+function render() {
+  const q = search.value.trim().toLowerCase();
+  const mode = type.value;
+  const mf = movies.filter(x => x.toLowerCase().includes(q));
+  const sf = series.filter(x => x.toLowerCase().includes(q));
+
+  movieGrid.innerHTML = '';
+  seriesGrid.innerHTML = '';
+
+  if (mode !== 'series') {
+    mf.forEach((x) => {
+      const card = createCard(x, movies.indexOf(x), 'movie');
+      movieGrid.appendChild(card);
+      observer.observe(card);
+    });
+  }
+  if (mode !== 'movie') {
+    sf.forEach((x) => {
+      const card = createCard(x, series.indexOf(x), 'series');
+      seriesGrid.appendChild(card);
+      observer.observe(card);
+    });
+  }
+
+  movieCount.textContent = mode === 'series' ? '' : `${mf.length} shown`;
+  seriesCount.textContent = mode === 'movie' ? '' : `${sf.length} shown`;
+
+  document.getElementById('moviesSection').style.display = mode === 'series' ? 'none' : '';
+  document.getElementById('seriesSection').style.display = mode === 'movie' ? 'none' : '';
+}
+
+search.addEventListener('input', render);
+type.addEventListener('change', render);
+clear.addEventListener('click', () => { search.value = ''; type.value = 'all'; render(); search.focus(); });
+render();
+</script>
+</body>
+</html>
